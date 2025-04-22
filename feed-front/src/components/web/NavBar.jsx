@@ -16,10 +16,10 @@ import {
     // MenuDivider,
     useDisclosure,
     Stack,
-    Menu,
 } from '@chakra-ui/react'
-import { useColorModeValue } from '../ui/color-mode'
 import { useSelector } from 'react-redux'
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const Links = ['Dashboard', 'Projects', 'Team']
 
@@ -44,12 +44,21 @@ const NavLink = (props) => {
 export default function NavBar() {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const user = useSelector((state) => state.user.user);
-
+    const setUser = useSelector((state) => state.user.setUser);
+    const [showDropdown, setShowDropdown] = React.useState(false);
+    const navigate = useNavigate();
     const handleLogout = () => {
         localStorage.removeItem('user');
-        onClose();
+        setShowDropdown(false);
+        setUser(null);
+        navigate('/login');
     };
-
+    
+    const toggleDropdown = () => {
+        setShowDropdown(!showDropdown);
+    };
+    
+    console.log(user)
     return (
         <>
             <Box px={4}>
@@ -70,23 +79,45 @@ export default function NavBar() {
                         </HStack>
                     </HStack>
                     <Flex alignItems={'center'}>
-                        <Menu.Root>
-                            <Menu.Trigger asChild>
-                                <Button rounded={'full'} variant={'link'} cursor={'pointer'} minW={0}>
-                                    <Avatar.Root  >
-                                        <Avatar.Fallback name={user?.name} />
-                                        <Avatar.Image src={user?.profilePicture} />
-                                    </Avatar.Root>
-                                </Button>
-                            </Menu.Trigger>
-                            <Portal>
-                                <Menu.Positioner>
-                                    <Menu.Content>
-                                        <Menu.Item onClick={handleLogout}>Logout</Menu.Item>
-                                    </Menu.Content>
-                                </Menu.Positioner>
-                            </Portal>
-                        </Menu.Root>
+                        <Box position="relative">
+                            <Button 
+                                rounded={'full'} 
+                                variant={'link'} 
+                                cursor={'pointer'} 
+                                minW={0}
+                                onClick={toggleDropdown}
+                            >
+                                <Avatar.Root>
+                                    <Avatar.Fallback name={user?.user?.name} />
+                                    <Avatar.Image src={user?.user?.profilePicture} />
+                                </Avatar.Root>
+                            </Button>
+                            
+                            {showDropdown && (
+                                <Box
+                                    position="absolute"
+                                    right={0}
+                                    mt={2}
+                                    bg="white"
+                                    borderWidth="1px"
+                                    borderRadius="md"
+                                    boxShadow="md"
+                                    p={2}
+                                    zIndex={1000}
+                                    minWidth="100px"
+                                >
+                                    <Button
+                                        variant="ghost"
+                                        w="100%"
+                                        justifyContent="flex-start"
+                                        onClick={handleLogout}
+                                        _hover={{ bg: 'gray.100' }}
+                                    >
+                                        Logout
+                                    </Button>
+                                </Box>
+                            )}
+                        </Box>
                     </Flex>
                 </Flex>
 

@@ -39,7 +39,7 @@ export default function FeedPage() {
       <NavBar />
       <Box maxW="2xl" mx="auto" mt={10} p={0} borderWidth={1} borderRadius={8} boxShadow="lg">
         <VStack spacing={0} align="stretch">
-          <CreatePost onPostCreated={handlePostCreated} />
+          <CreatePost onPostCreated={handlePostCreated} user={userSelector} />
           {posts.map(post => (
             <PostBox author={post.author} content={post.content} key={post.id} />
           ))}

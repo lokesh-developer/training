@@ -1,6 +1,7 @@
 import { Avatar, Button, Card } from "@chakra-ui/react"
 
 export const PostBox = ({author, content}) => {
+  
   return (
     <Card.Root width="full">
       <Card.Body gap="2">

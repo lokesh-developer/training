@@ -21,9 +21,9 @@ const CreatePost = ({ onPostCreated }) => {
     
     setIsPosting(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/posts', {
-        userId: user?.id,
-        content,
+      const response = await axios.post('http://localhost:5000/api/posts/create-post', {
+        userId: user?.user?._id,
+        description: content,
       });
       
       setContent('');
@@ -42,8 +42,8 @@ const CreatePost = ({ onPostCreated }) => {
       <Card.Body p={4}>
         <Flex gap={3}>
           <Avatar.Root size="md">
-            <Avatar.Fallback name={user?.name || 'User'} />
-            {user?.avatar && <Avatar.Image src={user.avatar} />}
+            <Avatar.Fallback name={user?.user?.name || 'User'} />
+            {user?.user?.profilePicture && <Avatar.Image src={user.user.profilePicture} />}
           </Avatar.Root>
           
           <Box width="full">

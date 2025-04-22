@@ -9,9 +9,9 @@ export const userSlice = createSlice({
   initialState,
   reducers: {
     //set User from localstorage
-    setUser: (state, action) => {
-      state.user = action.payload;
-    },
+setUser: (state, action) => {
+  state.user = JSON.parse(action.payload);
+}
   },
 })
 
