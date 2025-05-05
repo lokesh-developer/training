@@ -3,9 +3,13 @@ const express = require('express');
 const router = express.Router();
 
 // Import controllers
-const { createPost } = require('../controllers/posts');
+const { createPost, getAllPosts, likePost, addComment, getPostComments } = require('../controllers/posts');
 
 // Routes
 router.post('/create-post', createPost);
+router.get('/get-all-posts', getAllPosts);
+router.post('/like-post', likePost);
+router.post('/add-comment', addComment);
+router.get('/comments/:postId', getPostComments);
 
 module.exports = router;

@@ -1,23 +1,276 @@
-import { Avatar, Button, Card } from "@chakra-ui/react"
+import { useState, useEffect } from "react";
+import { 
+  Avatar, 
+  Button, 
+  Card, 
+  Flex, 
+  Text, 
+  Box, 
+  Input,
+  IconButton,
+  VStack,
+  HStack,
+  Divider,
+  Collapse,
+  useDisclosure,
+  useToast
+} from "@chakra-ui/react";
+import axios from "axios";
+import { useSelector } from "react-redux";
 
-export const PostBox = ({author, content}) => {
+export const PostBox = ({ userId, content, createdAt, _id, likes = [], comments = [] }) => {
+  // Format the date if it exists
+  const formattedDate = createdAt ? new Date(createdAt).toLocaleString() : 'Just now';
+  const [user, setUser] = useState(null);
+  const [postLikes, setPostLikes] = useState(likes);
+  const [postComments, setPostComments] = useState(comments);
+  const [commentText, setCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
+  const { isOpen: isCommentsOpen, onToggle: toggleComments } = useDisclosure();
+  const currentUser = useSelector((state) => state.user.user);
+  const toast = useToast();
+
+  // Check if current user has liked this post
+  const hasLiked = postLikes.includes(currentUser?.user?._id);
+
+  useEffect(() => {
+    if (userId) {
+      axios.get(`http://localhost:5000/api/user/get-user/${userId}`)
+      .then(response => {
+        setUser(response.data.user)
+      })
+      .catch(error => {
+        console.log(error)
+      })
+    }
+  }, [userId])
+  
+  // Handle like
+  const handleLike = async () => {
+    if (!currentUser?.user?._id) {
+      toast({
+        title: "Please log in to like posts",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setIsLiking(true);
+    try {
+      const response = await axios.post('http://localhost:5000/api/posts/like-post', {
+        postId: _id,
+        userId: currentUser.user._id
+      });
+      
+      setPostLikes(response.data.post.likes);
+      
+      toast({
+        title: response.data.message,
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error liking post:', error);
+      toast({
+        title: "Failed to like post",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  // Handle comment submission
+  const handleAddComment = async () => {
+    if (!commentText.trim()) return;
+    if (!currentUser?.user?._id) {
+      toast({
+        title: "Please log in to comment",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setSubmittingComment(true);
+    try {
+      const response = await axios.post('http://localhost:5000/api/posts/add-comment', {
+        postId: _id,
+        userId: currentUser.user._id,
+        text: commentText
+      });
+      
+      setPostComments(response.data.post.comments);
+      setCommentText('');
+      
+      // If comments aren't already open, open them
+      if (!isCommentsOpen) {
+        toggleComments();
+      }
+      
+      toast({
+        title: "Comment added",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      toast({
+        title: "Failed to add comment",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  // Fetch comments if they're not included in the post object
+  useEffect(() => {
+    if (isCommentsOpen && postComments.length === 0 && _id) {
+      axios.get(`http://localhost:5000/api/posts/comments/${_id}`)
+        .then(response => {
+          setPostComments(response.data);
+        })
+        .catch(error => {
+          console.error('Error fetching comments:', error);
+        });
+    }
+  }, [isCommentsOpen, _id, postComments.length]);
   
   return (
-    <Card.Root width="full">
+    <Card.Root width="full" mb={2} borderBottomWidth="1px">
       <Card.Body gap="2">
-        <Avatar.Root size="lg" shape="rounded">
-          <Avatar.Image src="https://picsum.photos/200/300" />
-          <Avatar.Fallback name="Nue Camp" />
-        </Avatar.Root>
-        <Card.Title mt="2">{author}</Card.Title>
-        <Card.Description>
+        <Flex alignItems="center" gap={3}>
+          <Avatar.Root size="md">
+            <Avatar.Fallback name={user?.name || 'User'} />
+            {user?.profilePicture && <Avatar.Image src={user.profilePicture} />}
+          </Avatar.Root>
+          <Box>
+            <Text fontWeight="bold">{user?.name || 'User'}</Text>
+            <Text fontSize="sm" color="gray.500">{formattedDate}</Text>
+          </Box>
+        </Flex>
+        <Card.Description mt={3} px={2}>
           {content}
         </Card.Description>
+
+        {/* Likes count */}
+        {postLikes.length > 0 && (
+          <Text fontSize="sm" color="gray.500" mt={2}>
+            {postLikes.length} {postLikes.length === 1 ? 'like' : 'likes'}
+          </Text>
+        )}
       </Card.Body>
-      <Card.Footer justifyContent="flex-end">
-        <Button variant="outline">Like</Button>
-        <Button>Comment</Button>
+
+      {/* Action buttons */}
+      <Card.Footer justifyContent="space-between">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          colorScheme={hasLiked ? "red" : "gray"}
+          onClick={handleLike}
+          isLoading={isLiking}
+        >
+          {hasLiked ? '❤️' : '🤍'} {hasLiked ? 'Liked' : 'Like'}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={toggleComments}>
+          💬 Comments {postComments.length > 0 && `(${postComments.length})`}
+        </Button>
+        <Button variant="ghost" size="sm">↗️ Share</Button>
       </Card.Footer>
+
+      {/* Comments section */}
+      <Collapse in={isCommentsOpen} animateOpacity>
+        <Box px={4} pb={4}>
+          <Divider my={3} />
+          
+          {/* Comment input */}
+          <Flex mb={4}>
+            <Avatar.Root size="sm" mr={2}>
+              <Avatar.Fallback name={currentUser?.user?.name || 'Me'} />
+              {currentUser?.user?.profilePicture && (
+                <Avatar.Image src={currentUser.user.profilePicture} />
+              )}
+            </Avatar.Root>
+            <Input 
+              placeholder="Write a comment..." 
+              value={commentText} 
+              onChange={(e) => setCommentText(e.target.value)}
+              mr={2}
+              onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
+            />
+            <Button 
+              colorScheme="blue" 
+              size="sm"
+              onClick={handleAddComment}
+              isLoading={submittingComment}
+              isDisabled={!commentText.trim() || submittingComment}
+            >
+              Post
+            </Button>
+          </Flex>
+          
+          {/* Comments list */}
+          <VStack align="stretch" spacing={3}>
+            {postComments.length === 0 ? (
+              <Text fontSize="sm" color="gray.500" textAlign="center">
+                No comments yet. Be the first to comment!
+              </Text>
+            ) : (
+              postComments.map((comment, index) => (
+                <CommentItem 
+                  key={index} 
+                  userId={comment.userId} 
+                  text={comment.text} 
+                  createdAt={comment.createdAt} 
+                />
+              ))
+            )}
+          </VStack>
+        </Box>
+      </Collapse>
     </Card.Root>
+  )
+}
+
+// Helper component for displaying individual comments
+const CommentItem = ({ userId, text, createdAt }) => {
+  const [commentUser, setCommentUser] = useState(null);
+  const formattedDate = createdAt ? new Date(createdAt).toLocaleString() : '';
+
+  useEffect(() => {
+    if (userId) {
+      axios.get(`http://localhost:5000/api/user/get-user/${userId}`)
+        .then(response => {
+          setCommentUser(response.data.user)
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    }
+  }, [userId]);
+
+  return (
+    <Flex>
+      <Avatar.Root size="xs" mr={2} mt={1}>
+        <Avatar.Fallback name={commentUser?.name || 'User'} />
+        {commentUser?.profilePicture && <Avatar.Image src={commentUser.profilePicture} />}
+      </Avatar.Root>
+      <Box bg="gray.50" p={2} borderRadius="md" flex={1}>
+        <Text fontWeight="bold" fontSize="sm">{commentUser?.name || 'User'}</Text>
+        <Text fontSize="sm">{text}</Text>
+        <Text fontSize="xs" color="gray.500" mt={1}>{formattedDate}</Text>
+      </Box>
+    </Flex>
   )
 }

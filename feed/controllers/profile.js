@@ -74,8 +74,26 @@ const updatePassword = async (req, res) => {
     }
 };
 
+const getUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json({
+            message: 'User found successfully',
+            user: user
+        });
+    } catch (error) {
+        console.error('Get user error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 module.exports = {
     deleteUser,
     editUser,
-    updatePassword
+    updatePassword,
+    getUser
 };
