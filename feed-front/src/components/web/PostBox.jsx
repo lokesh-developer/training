@@ -10,10 +10,8 @@ import {
   IconButton,
   VStack,
   HStack,
-  Divider,
-  Collapse,
+  // Divider,
   useDisclosure,
-  useToast
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -29,7 +27,7 @@ export const PostBox = ({ userId, content, createdAt, _id, likes = [], comments 
   const [isLiking, setIsLiking] = useState(false);
   const { isOpen: isCommentsOpen, onToggle: toggleComments } = useDisclosure();
   const currentUser = useSelector((state) => state.user.user);
-  const toast = useToast();
+  // const toast = useToast();
 
   // Check if current user has liked this post
   const hasLiked = postLikes.includes(currentUser?.user?._id);
@@ -49,12 +47,7 @@ export const PostBox = ({ userId, content, createdAt, _id, likes = [], comments 
   // Handle like
   const handleLike = async () => {
     if (!currentUser?.user?._id) {
-      toast({
-        title: "Please log in to like posts",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
+     
       return;
     }
 
@@ -90,12 +83,6 @@ export const PostBox = ({ userId, content, createdAt, _id, likes = [], comments 
   const handleAddComment = async () => {
     if (!commentText.trim()) return;
     if (!currentUser?.user?._id) {
-      toast({
-        title: "Please log in to comment",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
       return;
     }
 
@@ -114,21 +101,8 @@ export const PostBox = ({ userId, content, createdAt, _id, likes = [], comments 
       if (!isCommentsOpen) {
         toggleComments();
       }
-      
-      toast({
-        title: "Comment added",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
     } catch (error) {
       console.error('Error adding comment:', error);
-      toast({
-        title: "Failed to add comment",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
     } finally {
       setSubmittingComment(false);
     }
@@ -190,9 +164,9 @@ export const PostBox = ({ userId, content, createdAt, _id, likes = [], comments 
       </Card.Footer>
 
       {/* Comments section */}
-      <Collapse in={isCommentsOpen} animateOpacity>
+      {/* <Collapse in={isCommentsOpen} animateOpacity> */}
         <Box px={4} pb={4}>
-          <Divider my={3} />
+          {/* <Divider my={3} /> */}
           
           {/* Comment input */}
           <Flex mb={4}>
@@ -238,7 +212,7 @@ export const PostBox = ({ userId, content, createdAt, _id, likes = [], comments 
             )}
           </VStack>
         </Box>
-      </Collapse>
+      {/* </Collapse> */}
     </Card.Root>
   )
 }
