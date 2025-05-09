@@ -11,6 +11,7 @@ import { ColorModeProvider } from './components/ui/color-mode'
 import { Login } from './pages/Login';
 import Signup from './pages/Signup';
 import FeedPage from './pages/FeedPage';
+import ProfilePage from './pages/ProfilePage';
 import { useUser } from './hooks/user';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser } from './store/userSlice';
@@ -39,6 +40,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/feed" element={<FeedPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="*" element={<HomeNav />} />
         </Routes>
       </Router>

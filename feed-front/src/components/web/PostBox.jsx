@@ -27,7 +27,6 @@ export const PostBox = ({ userId, content, createdAt, _id, likes = [], comments 
   const [isLiking, setIsLiking] = useState(false);
   const { isOpen: isCommentsOpen, onToggle: toggleComments } = useDisclosure();
   const currentUser = useSelector((state) => state.user.user);
-  // const toast = useToast();
 
   // Check if current user has liked this post
   const hasLiked = postLikes.includes(currentUser?.user?._id);
@@ -60,20 +59,9 @@ export const PostBox = ({ userId, content, createdAt, _id, likes = [], comments 
       
       setPostLikes(response.data.post.likes);
       
-      toast({
-        title: response.data.message,
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
+      
     } catch (error) {
       console.error('Error liking post:', error);
-      toast({
-        title: "Failed to like post",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
     } finally {
       setIsLiking(false);
     }
